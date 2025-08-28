@@ -2,6 +2,7 @@ package com.example.project_3_security.Controller;
 
 import com.example.project_3_security.Api.ApiResponse;
 import com.example.project_3_security.Model.Account;
+import com.example.project_3_security.Model.Customer;
 import com.example.project_3_security.Model.User;
 import com.example.project_3_security.Service.AccountService;
 import jakarta.validation.Valid;
@@ -40,8 +41,8 @@ public class AccountController {
 
     //  (CUSTOMER )
     @GetMapping("/{id}")
-    public ResponseEntity<?> viewMyAccount(@AuthenticationPrincipal User user, @PathVariable Integer id) {
-        return ResponseEntity.status(200).body(accountService.viewMyAccount(user.getId(), id));
+    public ResponseEntity<?> viewMyAccount(@AuthenticationPrincipal Customer customer, @PathVariable Integer id) {
+        return ResponseEntity.status(200).body(accountService.viewMyAccount(customer.getId(), id));
     }
 
     //  (ADMIN )
@@ -52,24 +53,25 @@ public class AccountController {
 
     //  (CUSTOMER )
     @PostMapping("/{id}/deposit/{amount}")
-    public ResponseEntity<?> deposit(@AuthenticationPrincipal User user, @PathVariable Integer id, @PathVariable Integer amount) {
-        accountService.deposit(user.getId(), id, amount);
+    public ResponseEntity<?> deposit(@AuthenticationPrincipal Customer customer, @PathVariable Integer id, @PathVariable Integer amount) {
+        accountService.deposit(customer.getId(), id, amount);
         return ResponseEntity.status(200).body(new ApiResponse("Deposited"));
     }
 
     // (CUSTOMER)
     @PostMapping("/{id}/withdraw/{amount}")
-    public ResponseEntity<?> withdraw(@AuthenticationPrincipal User user, @PathVariable Integer id, @PathVariable Integer amount) {
-        accountService.withdraw(user.getId(), id, amount);
+    public ResponseEntity<?> withdraw(@AuthenticationPrincipal Customer customer, @PathVariable Integer id, @PathVariable Integer amount) {
+        accountService.withdraw(customer.getId(), id, amount);
         return ResponseEntity.status(200).body(new ApiResponse("Withdrawn"));
     }
 
 //POST /api/v1/accounts/transfer?fromAccountId=11&toAccountNumber=1234-5678-9012-3456&amount=100
     //.requestMatchers("/api/v1/accounts/transfer").hasAuthority("CUSTOMER")
+
     //   (CUSTOMER)
     @PostMapping("/transfer")
-    public ResponseEntity<?> transfer(@AuthenticationPrincipal User user, @RequestParam Integer fromAccountId, @RequestParam String toAccountNumber, @RequestParam Integer amount) {
-        accountService.transfer(user.getId(), fromAccountId, toAccountNumber, amount);
+    public ResponseEntity<?> transfer(@AuthenticationPrincipal Customer customer, @RequestParam Integer fromAccountId, @RequestParam String toAccountNumber, @RequestParam Integer amount) {
+        accountService.transfer(customer.getId(), fromAccountId, toAccountNumber, amount);
         return ResponseEntity.status(200).body(new ApiResponse("Transferred"));
     }
 }

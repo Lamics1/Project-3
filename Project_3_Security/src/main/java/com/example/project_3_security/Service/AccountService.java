@@ -51,12 +51,12 @@ public class AccountService {
 
 
     // 2) Create a new bank account
-    public void createMyAccount(Integer userId, Account account) {
-        User user = getUser(userId);
-        if (!"CUSTOMER".equals(user.getRole()))
-            throw new ApiException("Only CUSTOMER can create an account");
+    public void createMyAccount(Integer customer_Id, Account account) {
 
-        Customer customer = getCustomerByUser(user);
+        Customer customer = customerRepository.findCustomerById(customer_Id);
+        if (customer == null){
+            throw new ApiException(" CUSTOMER not found");
+        }
 
         // CHECK for account
         if (accountRepository.findAccountByAccountNumber(account.getAccountNumber()) != null)
@@ -88,12 +88,13 @@ public class AccountService {
 
 
     // 4) View account details (CUSTOMER)
-    public Account viewMyAccount(Integer userId, Integer accountId) {
-        User user = getUser(userId);
-        if (!"CUSTOMER".equals(user.getRole()))
-            throw new ApiException("Only CUSTOMER can view his account");
+    public Account viewMyAccount(Integer customer_Id, Integer accountId) {
+        Customer customer = customerRepository.findCustomerById(customer_Id);
+        if (customer == null){
+            throw new ApiException(" CUSTOMER not found");
+        }
         Account a = getAccount(accountId);
-        ensureOwner(a, userId);
+        ensureOwner(a, customer_Id);
         return a;
     }
 
@@ -106,30 +107,31 @@ public class AccountService {
     }
 
     // 6)  (CUSTOMER)
-    public void deposit(Integer userId, Integer accountId, Integer amount) {
+    public void deposit(Integer customerId, Integer accountId, Integer amount) {
         if (amount <= 0)
             throw new ApiException("Amount must be positive");
-        User user = getUser(userId);
-        if (!"CUSTOMER".equals(user.getRole()))
-            throw new ApiException("Only CUSTOMER can deposit");
+
+        Customer c = customerRepository.findCustomerById(customerId);
+        if (c == null)
+            throw new ApiException("Customer not found");
         Account a = getAccount(accountId);
-        ensureOwner(a, userId);
+        ensureOwner(a, customerId);
         ensureActive(a);
         a.setBalance(a.getBalance() + amount);
         accountRepository.save(a);
     }
 
     // 6)  (CUSTOMER)
-    public void withdraw(Integer userId, Integer accountId, Integer amount) {
+    public void withdraw(Integer customerId, Integer accountId, Integer amount) {
         if (amount <= 0)
             throw new ApiException("Amount must be positive");
 
-        User user = getUser(userId);
-        if (!"CUSTOMER".equals(user.getRole()))
-            throw new ApiException("Only CUSTOMER can withdraw");
+        Customer c = customerRepository.findCustomerById(customerId);
+        if (c == null)
+            throw new ApiException("Customer not found");
 
         Account a = getAccount(accountId);
-        ensureOwner(a, userId);
+        ensureOwner(a, customerId);
         ensureActive(a);
         if (a.getBalance() < amount)
             throw new ApiException("Insufficient balance");
@@ -138,16 +140,17 @@ public class AccountService {
     }
 
     // 7)  (CUSTOMER)
-    public void transfer(Integer userId, Integer fromAccountId, String toAccountNumber, Integer amount) {
+    public void transfer(Integer customerId, Integer fromAccountId, String toAccountNumber, Integer amount) {
         if (amount <= 0)
             throw new ApiException("Amount must be positive");
 
-        User user = getUser(userId);
-        if (!"CUSTOMER".equals(user.getRole()))
-            throw new ApiException("Only CUSTOMER can transfer");
+        Customer c = customerRepository.findCustomerById(customerId);
+        if (c == null)
+            throw new ApiException("Customer not found");
+
 
         Account from = getAccount(fromAccountId);
-        ensureOwner(from, userId);
+        ensureOwner(from, customerId);
         ensureActive(from);
 
         Account to = accountRepository.findAccountByAccountNumber(toAccountNumber);

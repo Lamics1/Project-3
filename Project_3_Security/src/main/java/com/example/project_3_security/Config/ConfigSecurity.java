@@ -1,6 +1,5 @@
 package com.example.project_3_security.Config;
-import com.example.project_3_security.Model.User;
-import com.example.project_3_security.Repository.UserRepository;
+import com.example.project_3_security.Service.MyUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,8 +7,6 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -17,23 +14,19 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @RequiredArgsConstructor
 public class ConfigSecurity {
-    private final UserRepository userRepository;
+
+
+    private final MyUserDetailsService myUserDetailsService;
+
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        return username -> {
-            User user = userRepository.findUserByUsername(username);
-            if (user == null) throw new UsernameNotFoundException("wrong username or password");
-            return user;
-        };
-    }
-    @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider() {
-        DaoAuthenticationProvider dao = new DaoAuthenticationProvider();
-        dao.setUserDetailsService(userDetailsService());
-        dao.setPasswordEncoder(new BCryptPasswordEncoder());
-        return dao;
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
+        daoAuthenticationProvider.setUserDetailsService(myUserDetailsService);
+        daoAuthenticationProvider.setPasswordEncoder(new BCryptPasswordEncoder());
+        return daoAuthenticationProvider;
     }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf().disable()
